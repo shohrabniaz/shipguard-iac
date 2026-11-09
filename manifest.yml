@@ -11,8 +11,9 @@ modules:
   rovo:agent:
     - key: shipguard-agent
       name: ShipGuard IaC
-      description: Scans Terraform/Kubernetes for security misconfigurations and only keeps LLM fixes that pass a verifier.
-      prompt: resource:agent-resource;prompts/agent-prompt.txt
+      description: Scans Terraform/Kubernetes misconfigurations and keeps only
+        verified LLM fixes.
+      prompt: resource:agent-resource;agent-prompt.txt
       conversationStarters:
         - Scan this Terraform for security issues
         - Suggest a verified fix for my Kubernetes Pod
@@ -27,15 +28,13 @@ modules:
       name: Scan IaC
       function: scanIac
       actionVerb: GET
-      description: >
-        Scan pasted Terraform (.tf) or Kubernetes YAML for security misconfigurations
-        using ShipGuard's rule engine. Returns findings with severity, ruleId, resource, and whether a human is required.
+      description: Scan pasted Terraform or Kubernetes YAML and return security findings.
       inputs:
         content:
           title: IaC content
           type: string
           required: true
-          description: The full Terraform or Kubernetes file contents to scan
+          description: Full Terraform or Kubernetes file contents to scan
         filename:
           title: Filename
           type: string
@@ -46,16 +45,13 @@ modules:
       name: Suggest verified fix
       function: suggestVerifiedFix
       actionVerb: CREATE
-      description: >
-        Propose an LLM repair for fixable findings, then keep the fix only if the verifier
-        confirms structural intent is preserved and the re-scan shows progress without new findings.
-        Returns verdict (verified|partial|rejected|human-only|clean), remaining findings, and fixed content.
+      description: Propose an LLM repair and keep it only if the verifier and re-scan agree.
       inputs:
         content:
           title: IaC content
           type: string
           required: true
-          description: The full Terraform or Kubernetes file contents to repair
+          description: Full Terraform or Kubernetes file contents to repair
         filename:
           title: Filename
           type: string
@@ -66,15 +62,13 @@ modules:
       name: Create finding issue
       function: createFindingIssue
       actionVerb: CREATE
-      description: >
-        Create a Jira Task for an IaC finding that needs a human decision
-        (for example KMS keys, image digests, IAM star policies, hostPath).
+      description: Create a Jira Task for an IaC finding that needs a human decision.
       inputs:
         ruleId:
           title: Rule ID
           type: string
           required: true
-          description: The ShipGuard / Checkov-style rule identifier
+          description: ShipGuard rule identifier
         title:
           title: Finding title
           type: string
@@ -98,19 +92,19 @@ modules:
 
   function:
     - key: resolver
-      handler: src/functions/resolver.handler
+      handler: resolver.handler
     - key: scanIac
-      handler: src/functions/rovoActions.scanIac
+      handler: rovoActions.scanIac
     - key: suggestVerifiedFix
-      handler: src/functions/rovoActions.suggestVerifiedFix
+      handler: rovoActions.suggestVerifiedFix
     - key: createFindingIssue
-      handler: src/functions/rovoActions.createFindingIssue
+      handler: rovoActions.createFindingIssue
 
 resources:
   - key: panel
     path: static/panel/build
   - key: agent-resource
-    path: .
+    path: prompts
 
 permissions:
   scopes:
@@ -119,9 +113,9 @@ permissions:
   external:
     fetch:
       backend:
-        - api.groq.com
+        - address: api.groq.com
 
 app:
   runtime:
-    name: nodejs20.x
-  id: ari:cloud:ecosystem::app/REPLACE-AFTER-FORGE-REGISTER
+    name: nodejs22.x
+  id: ari:cloud:ecosystem::app/386463f9-2d34-4331-9cae-e436fadc9190
