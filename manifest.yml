@@ -1,0 +1,127 @@
+modules:
+  jira:issuePanel:
+    - key: shipguard-iac-panel
+      resource: panel
+      resolver:
+        function: resolver
+      title: ShipGuard IaC
+      icon: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
+      tooltip: Scan and verify LLM repairs for Terraform and Kubernetes
+
+  rovo:agent:
+    - key: shipguard-agent
+      name: ShipGuard IaC
+      description: Scans Terraform/Kubernetes for security misconfigurations and only keeps LLM fixes that pass a verifier.
+      prompt: resource:agent-resource;prompts/agent-prompt.txt
+      conversationStarters:
+        - Scan this Terraform for security issues
+        - Suggest a verified fix for my Kubernetes Pod
+        - Create a Jira issue for a finding that needs a human
+      actions:
+        - scan-iac
+        - suggest-verified-fix
+        - create-finding-issue
+
+  action:
+    - key: scan-iac
+      name: Scan IaC
+      function: scanIac
+      actionVerb: GET
+      description: >
+        Scan pasted Terraform (.tf) or Kubernetes YAML for security misconfigurations
+        using ShipGuard's rule engine. Returns findings with severity, ruleId, resource, and whether a human is required.
+      inputs:
+        content:
+          title: IaC content
+          type: string
+          required: true
+          description: The full Terraform or Kubernetes file contents to scan
+        filename:
+          title: Filename
+          type: string
+          required: false
+          description: Optional filename hint such as main.tf or deployment.yaml
+
+    - key: suggest-verified-fix
+      name: Suggest verified fix
+      function: suggestVerifiedFix
+      actionVerb: CREATE
+      description: >
+        Propose an LLM repair for fixable findings, then keep the fix only if the verifier
+        confirms structural intent is preserved and the re-scan shows progress without new findings.
+        Returns verdict (verified|partial|rejected|human-only|clean), remaining findings, and fixed content.
+      inputs:
+        content:
+          title: IaC content
+          type: string
+          required: true
+          description: The full Terraform or Kubernetes file contents to repair
+        filename:
+          title: Filename
+          type: string
+          required: false
+          description: Optional filename hint such as main.tf or pod.yaml
+
+    - key: create-finding-issue
+      name: Create finding issue
+      function: createFindingIssue
+      actionVerb: CREATE
+      description: >
+        Create a Jira Task for an IaC finding that needs a human decision
+        (for example KMS keys, image digests, IAM star policies, hostPath).
+      inputs:
+        ruleId:
+          title: Rule ID
+          type: string
+          required: true
+          description: The ShipGuard / Checkov-style rule identifier
+        title:
+          title: Finding title
+          type: string
+          required: true
+          description: Short title of the finding
+        resource:
+          title: Resource
+          type: string
+          required: false
+          description: Terraform address or Kubernetes object name
+        detail:
+          title: Detail
+          type: string
+          required: false
+          description: Extra context for the assignee
+        projectKey:
+          title: Project key
+          type: string
+          required: true
+          description: Jira project key where the Task should be created
+
+  function:
+    - key: resolver
+      handler: src/functions/resolver.handler
+    - key: scanIac
+      handler: src/functions/rovoActions.scanIac
+    - key: suggestVerifiedFix
+      handler: src/functions/rovoActions.suggestVerifiedFix
+    - key: createFindingIssue
+      handler: src/functions/rovoActions.createFindingIssue
+
+resources:
+  - key: panel
+    path: static/panel/build
+  - key: agent-resource
+    path: .
+
+permissions:
+  scopes:
+    - read:jira-work
+    - write:jira-work
+  external:
+    fetch:
+      backend:
+        - api.groq.com
+
+app:
+  runtime:
+    name: nodejs20.x
+  id: ari:cloud:ecosystem::app/REPLACE-AFTER-FORGE-REGISTER

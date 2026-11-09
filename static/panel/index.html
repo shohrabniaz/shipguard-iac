@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ShipGuard IaC</title>
+  <style>
+    :root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #172B4D; }
+    body { margin: 12px; }
+    h1 { font-size: 16px; margin: 0 0 8px; }
+    .muted { color: #6B778C; font-size: 12px; margin-bottom: 12px; }
+    textarea { width: 100%; min-height: 160px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; box-sizing: border-box; padding: 8px; border: 1px solid #DFE1E6; border-radius: 3px; }
+    .row { display: flex; gap: 8px; margin: 8px 0; flex-wrap: wrap; align-items: center; }
+    input[type=text] { padding: 6px 8px; border: 1px solid #DFE1E6; border-radius: 3px; }
+    button { background: #0052CC; color: #fff; border: 0; border-radius: 3px; padding: 8px 12px; cursor: pointer; font-weight: 600; }
+    button.secondary { background: #F4F5F7; color: #172B4D; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+    .verified { background: #E3FCEF; color: #006644; }
+    .partial { background: #FFFAE6; color: #FF8B00; }
+    .rejected, .error { background: #FFEBE6; color: #DE350B; }
+    .clean, .human-only { background: #DEEBFF; color: #0747A6; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+    th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid #EBECF0; vertical-align: top; }
+    pre { background: #F4F5F7; padding: 8px; overflow: auto; font-size: 11px; max-height: 280px; }
+    .sev-CRITICAL { color: #DE350B; font-weight: 700; }
+    .sev-HIGH { color: #FF5630; font-weight: 700; }
+    .sev-MEDIUM { color: #FF8B00; }
+    .sev-LOW { color: #6B778C; }
+  </style>
+</head>
+<body>
+  <h1>ShipGuard IaC</h1>
+  <div class="muted">Paste Terraform or Kubernetes YAML. Scan with the built-in rules, then ask for a <strong>verified</strong> LLM fix. Fixes that fail the verifier are thrown away.</div>
+  <div class="row">
+    <label>Filename <input id="filename" type="text" value="main.tf" /></label>
+  </div>
+  <textarea id="content" placeholder="Paste .tf or Kubernetes YAML here"></textarea>
+  <div class="row">
+    <button id="scanBtn">Scan</button>
+    <button id="fixBtn" class="secondary">Suggest verified fix</button>
+    <span id="verdict"></span>
+  </div>
+  <div id="status" class="muted"></div>
+  <div id="findings"></div>
+  <div id="fixed"></div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

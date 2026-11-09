@@ -1,0 +1,15 @@
+{
+  "name": "shipguard-iac-panel",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@forge/bridge": "^4.5.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
+}

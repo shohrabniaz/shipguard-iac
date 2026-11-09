@@ -1,0 +1,10 @@
+node_modules/
+.forge/
+*.log
+.env
+.env.*
+!.env.example
+coverage/
+dist/
+.DS_Store
+credentials.json
